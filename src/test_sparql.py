@@ -1,7 +1,7 @@
 import trident
 import json
 
-KBPATH='assets/wikidata-20200203-truthy-uri-tridentdb'
+KBPATH='../assets/wikidata-20200203-truthy-uri-tridentdb'
 
 #Retrieve first 10 entities of type (P31) city (Q515)
 query="PREFIX wde: <http://www.wikidata.org/entity/> "\
