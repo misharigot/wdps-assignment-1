@@ -11,3 +11,6 @@ COPY requirements.txt /app/assignment/requirements.txt
 COPY src /app/assignment/src
 
 RUN pip3 install -r requirements.txt
+
+# Install nltk data
+RUN python3 -m nltk.downloader all
