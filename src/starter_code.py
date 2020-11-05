@@ -1,4 +1,5 @@
 import gzip
+import information_extraction as ie
 
 KEYNAME = "WARC-TREC-ID"
 
@@ -21,7 +22,8 @@ def find_labels(payload):
 
     # Problem 2: Let's assume that we found a way to retrieve the text from a webpage. How can we recognize the
     # entities in the text?
-    get_entities(html)
+    
+    # ie.get_entities(text)
 
     # Problem 3: We now have to disambiguate the entities in the text. For instance, let's assugme that we identified
     # the entity "Michael Jordan". Which entity in Wikidata is the one that is referred to in the text?
