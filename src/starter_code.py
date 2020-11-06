@@ -22,7 +22,7 @@ def find_labels(payload):
 
     # Problem 2: Let's assume that we found a way to retrieve the text from a webpage. How can we recognize the
     # entities in the text?
-    
+
     # ie.get_entities(text)
 
     # Problem 3: We now have to disambiguate the entities in the text. For instance, let's assugme that we identified
