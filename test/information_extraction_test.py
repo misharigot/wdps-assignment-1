@@ -1,4 +1,4 @@
-from src.information_extraction import get_entities
+from information_extraction import get_entities
 
 html = {
     "website-1": """
