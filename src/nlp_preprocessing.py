@@ -1,21 +1,29 @@
-"""Preprocess the warc.gz files.
-Output = refined text, maybe a dictionary of strings, e.g.:
+from bs4 import BeautifulSoup
+import cld2
+import re
+from typing import Optional
 
-{
-    "website-1": [
-        "Lorem ipsum dolor sit amet"
-    ],
-    "website-2": [
-        "This", "is", "some", "other", "way", "of", "storing", "the", "data"
-    ],
-}
+WARCTYPE = "WARC-Type"
 
-Stuff that could happen here is: 
-- remove whitespace
-- remove stopwords
-- lemmetization
-- word stemming
-- etc.
-"""
+def preprocess_text(payload: str) -> Optional[str]:
+    for line in payload.splitlines():
+        if line.startswith(WARCTYPE) and line.split(": ")[1] != "response":
+            return
+        else:
+            break
 
-# import apache nlp?
+    html = payload[payload.find("<html") :]
+
+    soup = BeautifulSoup(html, "html.parser")
+    for script in soup(["script", "style", "textarea"]):
+        script.decompose()
+    text = soup.get_text(separator=" ", strip=True)
+
+    try:
+        _, _, languages = cld2.detect(text)
+        if languages[0].language_code != "en":
+            return
+    except ValueError:
+        return
+
+    yield (" ".join(re.sub("[^A-Za-z]", " ", text).split())).lower()
