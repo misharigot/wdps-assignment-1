@@ -29,8 +29,15 @@
     sh /app/assignment/src/start_elasticsearch_server.sh
     ```
 
-2. Run the example
+1. Run the example
 
     ```sh
     sh /app/assignment/src/run_example.sh
+    ```
+
+1. Run pytest
+
+    ```sh
+    cd /app/assignment
+    pytest
     ```
