@@ -19,7 +19,7 @@ html_no_text = """
 
 def test_preprocess_text():
     actual = preprocess_text(html)
-    expected = "this is a paragraph"
+    expected = "this is a paragraph."
 
     assert actual == expected
 
