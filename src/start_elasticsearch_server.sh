@@ -1,5 +1,3 @@
 #!/bin/sh
 
-../assets/elasticsearch-7.9.2/bin/elasticsearch -d
-echo "Elasticsearch is started!"
-
+/app/assignment/assets/elasticsearch-7.9.2/bin/elasticsearch -d && echo "Elasticsearch is started!"
