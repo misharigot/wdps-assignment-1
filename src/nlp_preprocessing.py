@@ -9,7 +9,7 @@ WARCTYPE = "WARC-Type"
 def preprocess_text(payload: str) -> Optional[str]:
     for line in payload.splitlines():
         if line.startswith(WARCTYPE) and line.split(": ")[1] != "response":
-            return
+            return None
         else:
             break
 
@@ -23,8 +23,8 @@ def preprocess_text(payload: str) -> Optional[str]:
     try:
         _, _, languages = cld2.detect(text)
         if languages[0].language_code != "en":
-            return
+            return None
     except ValueError:
-        return
+        return None
 
     return " ".join(re.sub("[^A-Za-z0-9.!?]", " ", text).split())
