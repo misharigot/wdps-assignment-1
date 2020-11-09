@@ -2,10 +2,6 @@ FROM karmaresearch/wdps_assignment
 
 USER root
 RUN sudo apt install -y libcairo2-dev
-# sudo apt-get install python3 python-dev python3-dev \
-#      build-essential libssl-dev libffi-dev \
-#      libxml2-dev libxslt1-dev zlib1g-dev \
-#      python-pip
 
 USER wdps
 WORKDIR /app/assignment
