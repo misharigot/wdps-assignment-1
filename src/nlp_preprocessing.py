@@ -5,6 +5,7 @@ from typing import Optional
 
 WARCTYPE = "WARC-Type"
 
+
 def preprocess_text(payload: str) -> Optional[str]:
     for line in payload.splitlines():
         if line.startswith(WARCTYPE) and line.split(": ")[1] != "response":
@@ -12,7 +13,7 @@ def preprocess_text(payload: str) -> Optional[str]:
         else:
             break
 
-    html = payload[payload.find("<html") :]
+    html = payload[payload.find("<html"):]
 
     soup = BeautifulSoup(html, "html.parser")
     for script in soup(["script", "style", "textarea"]):
@@ -26,4 +27,4 @@ def preprocess_text(payload: str) -> Optional[str]:
     except ValueError:
         return
 
-    yield (" ".join(re.sub("[^A-Za-z]", " ", text).split())).lower()
+    return (" ".join(re.sub("[^A-Za-z0-9.!?]", " ", text).split())).lower()
