@@ -39,5 +39,5 @@
 
     ```sh
     cd /app/assignment
-    pytest
+    python3 -m pytest
     ```
