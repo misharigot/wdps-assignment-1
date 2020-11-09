@@ -27,4 +27,4 @@ def preprocess_text(payload: str) -> Optional[str]:
     except ValueError:
         return None
 
-    return " ".join(re.sub("[^A-Za-z0-9.!?]", " ", text).split())
+    return " ".join(re.sub("[^A-Za-z0-9.,!?/'\"&$:-]", " ", text).split())

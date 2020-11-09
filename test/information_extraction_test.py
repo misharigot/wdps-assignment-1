@@ -22,7 +22,9 @@ html = {
 
 
 def test_get_spacy_entities():
-    actual = ie.get_spacy_entities(html["website-1"])
+    information_extractor = ie.InformationExtractor()
+
+    actual = information_extractor.get_spacy_entities(html["website-1"])
     expected = [
         ("ORG", "Neuro"),
         ("ORG", "NLP"),
