@@ -1,4 +1,4 @@
-from information_extraction import get_entities
+import information_extraction as ie
 
 html = {
     "website-1": """
@@ -10,12 +10,26 @@ html = {
 
 
 def test_get_entities():
-    actual = get_entities(html["website-1"])
+    actual = ie.get_nltk_entities(html["website-1"])
     expected = [
-        ('ORGANIZATION', 'NLP'), 
-        ('PERSON', 'Richard Bandler'), 
-        ('PERSON', 'John Grinder'), 
-        ('GPE', 'California'), 
-        ('GPE', 'United States')
+        ("ORGANIZATION", "NLP"),
+        ("PERSON", "Richard Bandler"),
+        ("PERSON", "John Grinder"),
+        ("GPE", "California"),
+        ("GPE", "United States"),
+    ]
+    assert actual == expected
+
+
+def test_get_spacy_entities():
+    actual = ie.get_spacy_entities(html["website-1"])
+    expected = [
+        ("ORG", "Neuro"),
+        ("ORG", "NLP"),
+        ("PERSON", "Richard Bandler"),
+        ("PERSON", "John Grinder"),
+        ("GPE", "California"),
+        ("GPE", "United States"),
+        ("DATE", "the 1970s"),
     ]
     assert actual == expected
