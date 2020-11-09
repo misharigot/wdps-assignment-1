@@ -15,7 +15,7 @@ COPY test /app/assignment/test
 RUN pip3 install spacy
 RUN python3 -m spacy download en_core_web_md
 
-RUN pip3 install -r requirements.txt
+RUN CFLAGS="-Wno-narrowing" pip3 install -r requirements.txt
 
 # Install nltk data
 # RUN python3 -m nltk.downloader all

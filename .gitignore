@@ -133,3 +133,4 @@ assets/
 data/
 .DS_Store
 .vscode
+sample_predictions.tsv
