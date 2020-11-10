@@ -22,9 +22,13 @@ import en_core_web_md
 #             result.append((label, entity))
 #     return result
 
+class InformationExtractor():
 
-def get_spacy_entities(text):
-    nlp = en_core_web_md.load()
-    doc = nlp(text)
-    result = [(X.label_, X.text) for X in doc.ents]
-    return result
+    def __init__(self):
+        self.nlp = en_core_web_md.load()
+
+    def get_spacy_entities(self, text):
+        with self.nlp.disable_pipes("tagger", "parser"):
+            doc = self.nlp(text)
+            result = [(X.label_, X.text) for X in doc.ents]
+            return result
