@@ -8,11 +8,15 @@ from tqdm import tqdm
 
 import information_extraction as ie
 from nlp_preprocessing import preprocess_text
+import entity_linking as el
+from elasticsearch import Elasticsearch
 
 KEYNAME = "WARC-TREC-ID"
+KBPATH='assets/wikidata-20200203-truthy-uri-tridentdb'
 
 class Executor:
     def __init__(self):
+        self.entity_linking = el.Entity_Linking(KBPATH)
         self.information_extractor = ie.InformationExtractor()
 
     # The goal of this function is to process the webpage and to return a list of labels -> entity ID
@@ -38,12 +42,13 @@ class Executor:
         # entities in the text?
 
         entities = self.information_extractor.get_spacy_entities(text)
-        for entity in entities:
-            yield key, entity[0], entity[1]
 
         # Problem 3: We now have to disambiguate the entities in the text. For instance, let's assugme that we identified
         # the entity "Michael Jordan". Which entity in Wikidata is the one that is referred to in the text?
 
+        entity_wikidata = self.entity_linking.entityLinking(entities)
+        for entity in entity_wikidata:
+            yield key, entity[0], entity[1]
         # To tackle this problem, you have access to two tools that can be useful. The first is a SPARQL engine (Trident)
         # with a local copy of Wikidata. The file "test_sparql.py" shows how you can execute SPARQL queries to retrieve
         # valuable knowledge. Please be aware that a SPARQL engine is not the best tool in case you want to lookup for
