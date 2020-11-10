@@ -6,26 +6,25 @@ import trident
 KBPATH='./../assets/wikidata-20200203-truthy-uri-tridentdb'
 # Load the KB
 db = trident.Db(KBPATH)
+e = None
 
-#0 start with list of entities and their type
-entities = [
-        # ("ORGANIZATION", "NLP"),
-        # ("PERSON", "Richard Bandler"),
-        # ("PERSON", "John Grinder"),
-        # ("GPE", "California"),
-        ("ORGANIZATION", "Google"),
-        # ("GPE", "United States")        
-    ]
+def initialiseElastic():
+    global e
+    e=Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
 def searchElastic(query):
-    e = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+    global e
     p = {"query": {"query_string": {"query": query}}}
     response = e.search(index="wikidata_en", body=json.dumps(p))
     #idea maybe query name and a.k.a. instead of name and description (possibly faster more accurate since we often have the abbreviation)
     id_labels = {}
     if response:
         for hit in response["hits"]["hits"]:
-            label = hit["_source"]["schema_name"]
+            try:
+                #same entity have schema name missing
+                label = hit["_source"]["schema_name"]
+            except Exception as e:
+                continue
             id = hit["_id"]
             #could also retrieve the ES score here
             id_labels.setdefault(id, set()).add(label)
@@ -57,10 +56,3 @@ def entityLinking(entity_type):
         entitiy_popularity.sort(key=lambda x: x[1], reverse=True)
         entity_wikidata.append((entity[1],entitiy_popularity[0][0]))
     return entity_wikidata
-
-if __name__ == "__main__":
-    entity_wikidata = entityLinking(entities)
-    print(entity_wikidata)
-
-
-            
