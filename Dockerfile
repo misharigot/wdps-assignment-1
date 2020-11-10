@@ -9,11 +9,18 @@ WORKDIR /app/assignment
 # Copy all necessary repo files
 COPY requirements.txt /app/assignment/requirements.txt
 COPY src /app/assignment/src
+COPY test /app/assignment/test
 
-RUN pip3 install -r requirements.txt
+# Install spacy
+RUN pip3 install spacy
+RUN python3 -m spacy download en_core_web_md
 
-# Install nltk data
-RUN python3 -m nltk.downloader all
+RUN CFLAGS="-Wno-narrowing" pip3 install -r requirements.txt
 
+<<<<<<< HEAD
 # # Install spacy data
 # RUN python3 -m spacy download en_core_web_md
+=======
+# Install nltk data
+# RUN python3 -m nltk.downloader all
+>>>>>>> main

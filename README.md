@@ -14,30 +14,46 @@
     docker build -t wdps_assignment:0.1.0 .
     ```
 
-1. Add the assets and data directories from the large zip archives to the cloned repository.
+1. Add the assets and data directories from the large zip archives to the cloned repository. Making the following dir structure:
 
+    ```
+    .
+    ├── assets
+    │   ├── elasticsearch-7.9.2
+    │   └── wikidata-20200203-truthy-uri-tridentdb
+    ├── data
+    │   ├── sample-labels-cheat.txt
+    │   ├── sample.warc.gz
+    │   ├── sample_annotations.tsv
+    │   └── warcs
+    |   ...
+    ├── src
+    │   └── ...
+    └── test
+        └── ...
+    ```
 
-1. Run the container and mount your data folder.
+2. Run the container and mount your data folder.
 
     ```sh
     docker run -ti -v /path/to/this/repo:/app/assignment -p 9200:9200 wdps_assignment:0.1.0
     ```
 
-1. Start elastic search server.
+3. Start elastic search server.
 
     ```sh
     sh /app/assignment/src/start_elasticsearch_server.sh
     ```
 
-1. Run the example
+4. Run the example
 
     ```sh
     sh /app/assignment/src/run_example.sh
     ```
 
-1. Run pytest
+5. Run pytest
 
     ```sh
     cd /app/assignment
-    pytest
+    python3 -m pytest
     ```
