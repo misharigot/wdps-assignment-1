@@ -17,10 +17,5 @@ RUN python3 -m spacy download en_core_web_md
 
 RUN CFLAGS="-Wno-narrowing" pip3 install -r requirements.txt
 
-<<<<<<< HEAD
-# # Install spacy data
-# RUN python3 -m spacy download en_core_web_md
-=======
 # Install nltk data
 # RUN python3 -m nltk.downloader all
->>>>>>> main
