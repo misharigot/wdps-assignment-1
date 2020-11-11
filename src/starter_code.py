@@ -9,7 +9,8 @@ from tqdm import tqdm
 import information_extraction as ie
 from nlp_preprocessing import preprocess_text
 
-KEYNAME = "WARC-TREC-ID"
+KEYNAME = "WARC-Record-ID"
+
 
 class Executor:
     def __init__(self):
@@ -71,7 +72,6 @@ class Executor:
         #     if key and (label in payload):
         #         yield key, label, wikidata_id
 
-
     @staticmethod
     def split_records(stream):
         payload = ""
@@ -83,8 +83,11 @@ class Executor:
                 payload += line
         yield payload
 
-
-    def execute(self, warc_path: str = "/app/assignment/data/sample.warc.gz", max_iterations=None):
+    def execute(
+        self,
+        warc_path: str,
+        max_iterations=None,
+    ):
         data = pd.DataFrame(columns=["key", "type", "label"])
 
         with gzip.open(warc_path, "rt", errors="ignore") as fo:
@@ -105,14 +108,13 @@ if __name__ == "__main__":
         _, INPUT = sys.argv
     except Exception as e:
         print("Usage: python starter-code.py INPUT")
-        sys.exit(0)
+        INPUT = "/app/assignment/data/sample.warc.gz"
 
     executor = Executor()
-    executor.execute(INPUT)
+    executor.execute(INPUT, 5)
 
     # The following allows you to get performance stats on running execute()
- 
+
     # cProfile.run('executor.execute()', 'restats')
     # p = pstats.Stats('restats')
     # p.sort_stats('cumulative').print_stats(30)
-    
