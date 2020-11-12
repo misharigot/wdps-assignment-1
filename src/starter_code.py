@@ -44,14 +44,34 @@ class Executor:
         
         print("step2, information extraction")
         entities = self.information_extractor.get_spacy_entities(text)
+        enriched_entities = self.entity_linking.enrich_entities(entities)
+        raise Exception(enriched_entities)
+        """dict = {
+            "ID1": [former US computer thingy],
+            "ID2": [nickname for new york],
+        }
+        """
+        
 
         # Problem 3: We now have to disambiguate the entities in the text. For instance, let's assugme that we identified
         # the entity "Michael Jordan". Which entity in Wikidata is the one that is referred to in the text?
-        print("step3, processing entities amount of : " + str(len(entities)))
-        entity_wikidata = self.entity_linking.entityLinking(entities)
-        print("finished")
-        for entity in entity_wikidata:
-            yield key, entity[0], entity[1]
+
+        
+        # similarities = []
+        # for wiki_url, entity in enriched_entities.items():
+        #     entity_label = entity[0]
+        #     entity_description = entity[1]
+        #     similarity = get_jaccard_sim(entity_description, text)
+        #     similarities.append((wiki_url, entity_label))
+        
+        # raise Exception(similarities)
+
+
+        # print("step3, processing entities amount of : " + str(len(entities)))
+        # entity_wikidata = self.entity_linking.entityLinking(entities)
+        # print("finished")
+        # for entity in entity_wikidata:
+        #     yield key, entity[0], entity[1]
             
         # To tackle this problem, you have access to two tools that can be useful. The first is a SPARQL engine (Trident)
         # with a local copy of Wikidata. The file "test_sparql.py" shows how you can execute SPARQL queries to retrieve
@@ -92,6 +112,12 @@ class Executor:
                 payload += line
         yield payload
 
+    @staticmethod
+    def get_jaccard_sim(str1, str2):
+        a = set(str1.split())
+        b = set(str2.split())
+        c = a.intersection(b)
+        return float(len(c)) / (len(a) + len(b) - len(c))
 
     def execute(self, warc_path: str = "/app/assignment/data/sample.warc.gz", max_iterations=None):
         data = pd.DataFrame(columns=["key", "type", "label"])
