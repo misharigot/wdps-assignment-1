@@ -143,7 +143,7 @@ if __name__ == "__main__":
         _, INPUT = sys.argv
     except Exception as e:
         print("Usage: python starter-code.py INPUT")
-        sys.exit(0)
+        INPUT = "/app/assignment/data/sample.warc.gz"
 
     executor = Executor()
     data = executor.execute(INPUT)
