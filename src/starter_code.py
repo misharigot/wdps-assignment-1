@@ -2,26 +2,27 @@ import cProfile
 import gzip
 import pstats
 import sys
+from typing import Tuple
 
 import pandas as pd
+from elasticsearch import Elasticsearch
 from tqdm import tqdm
 
+import entity_linking as el
 import information_extraction as ie
 from nlp_preprocessing import preprocess_text
-import entity_linking as el
-from elasticsearch import Elasticsearch
 
 KEYNAME = "WARC-TREC-ID"
-KBPATH='/app/assignment/assets/wikidata-20200203-truthy-uri-tridentdb'
+KBPATH = "/app/assignment/assets/wikidata-20200203-truthy-uri-tridentdb"
+
 
 class Executor:
     def __init__(self):
-        self.entity_linking = el.Entity_Linking(KBPATH)
+        self.entity_linking = el.Entity_Linking(KBPATH, strategy="query_string")
         self.information_extractor = ie.InformationExtractor()
 
     # The goal of this function is to process the webpage and to return a list of labels -> entity ID
     def _find_labels(self, payload):
-        print("step1, preprocessing")
         if payload == "":
             return
         # The variable payload contains the source code of a webpage and some additional meta-data.
@@ -41,38 +42,20 @@ class Executor:
 
         # Problem 2: Let's assume that we found a way to retrieve the text from a webpage. How can we recognize the
         # entities in the text?
-        
-        print("step2, information extraction")
+
         entities = self.information_extractor.get_spacy_entities(text)
         enriched_entities = self.entity_linking.enrich_entities(entities)
-        raise Exception(enriched_entities)
-        """dict = {
-            "ID1": [former US computer thingy],
-            "ID2": [nickname for new york],
-        }
-        """
-        
 
-        # Problem 3: We now have to disambiguate the entities in the text. For instance, let's assugme that we identified
+        # Problem 3: We now have to disambiguate the entities in the text. For instance, let's assume that we identified
         # the entity "Michael Jordan". Which entity in Wikidata is the one that is referred to in the text?
 
-        
-        # similarities = []
-        # for wiki_url, entity in enriched_entities.items():
-        #     entity_label = entity[0]
-        #     entity_description = entity[1]
-        #     similarity = get_jaccard_sim(entity_description, text)
-        #     similarities.append((wiki_url, entity_label))
-        
-        # raise Exception(similarities)
+        for enriched_entity in enriched_entities:
+            disambiguated_entity = self.disambiguate(enriched_entity, text)
+            if disambiguated_entity:
+                wikidata_id = disambiguated_entity[0]
+                label = disambiguated_entity[1]
+                yield key, label, wikidata_id
 
-
-        # print("step3, processing entities amount of : " + str(len(entities)))
-        # entity_wikidata = self.entity_linking.entityLinking(entities)
-        # print("finished")
-        # for entity in entity_wikidata:
-        #     yield key, entity[0], entity[1]
-            
         # To tackle this problem, you have access to two tools that can be useful. The first is a SPARQL engine (Trident)
         # with a local copy of Wikidata. The file "test_sparql.py" shows how you can execute SPARQL queries to retrieve
         # valuable knowledge. Please be aware that a SPARQL engine is not the best tool in case you want to lookup for
@@ -87,19 +70,32 @@ class Executor:
 
         # Obviously, more sophisticated implementations that the one suggested above are more than welcome :-)
 
-        # For now, we are cheating. We are going to returthe labels that we stored in sample-labels-cheat.txt
-        # Instead of doing that, you should process the text to identify the entities. Your implementation should return
-        # the discovered disambiguated entities with the same format so that I can check the performance of your program.
-        # cheats = dict(
-        #     (
-        #         line.split("\t", 2)
-        #         for line in open("../data/sample-labels-cheat.txt").read().splitlines()
-        #     )
-        # )
-        # for label, wikidata_id in cheats.items():
-        #     if key and (label in payload):
-        #         yield key, label, wikidata_id
+    def disambiguate(self, enriched_entity: Tuple[str, str, str], text):
+        """enriced_entity = (label, name, description)"""
+        similarities = []  # wiki_url, sim_score, entity_label
+        for wiki_url, enrichment in enriched_entity.items():
+            """
+            {
+                '<http://www.wikidata.org/entity/Q65026858>':
+                    ('France', 'print in the National Gallery of Art (NGA 30406)'),
+                '<http://www.wikidata.org/entity/Q64582899>':
+                    ('France', 'drawing in the National Gallery of Art (NGA 67958)')
+            }
+            """
+            entity_label = enrichment[1]
+            entity_name = enrichment[0]
+            entity_description = enrichment[2]
 
+            similarity_score = self.get_jaccard_sim(entity_description, text)
+            similarities.append((wiki_url, similarity_score, entity_label, entity_name))
+
+        # Get highest similarity and add to list
+        if len(similarities) > 0:
+            similarities = sorted(similarities, key=lambda x: x[1])
+            most_similar = similarities[0]
+            url = most_similar[0]
+            label = most_similar[2]
+            return url, label
 
     @staticmethod
     def split_records(stream):
@@ -119,19 +115,26 @@ class Executor:
         c = a.intersection(b)
         return float(len(c)) / (len(a) + len(b) - len(c))
 
-    def execute(self, warc_path: str = "/app/assignment/data/sample.warc.gz", max_iterations=None):
+    def execute(
+        self,
+        warc_path: str = "/app/assignment/data/sample.warc.gz",
+        max_iterations=None,
+    ) -> pd.DataFrame:
         data = pd.DataFrame(columns=["key", "type", "label"])
 
         with gzip.open(warc_path, "rt", errors="ignore") as fo:
             counter = 0
             for record in tqdm(self.split_records(fo)):
-                for key, _type, label in self._find_labels(record):
-                    row = {"key": key, "type": _type, "label": label}
+                for key, label, wikidata_id in self._find_labels(record):
+                    # Output as expected by assignment requirements:
+                    print(key + "\t" + label + "\t" + wikidata_id)
+
+                    row = {"key": key, "label": label, "wikidata_id": wikidata_id}
                     data = data.append(row, ignore_index=True)
                 counter += 1
                 if max_iterations and counter == max_iterations:
                     break
-        data.to_csv("result.csv")
+        return data
 
 
 if __name__ == "__main__":
@@ -143,11 +146,12 @@ if __name__ == "__main__":
         sys.exit(0)
 
     executor = Executor()
-    executor.execute(INPUT)
+    data = executor.execute(INPUT)
+    print(data)
+    # data.to_csv("result.csv")
 
     # The following allows you to get performance stats on running execute()
- 
+
     # cProfile.run('executor.execute()', 'restats')
     # p = pstats.Stats('restats')
     # p.sort_stats('cumulative').print_stats(30)
-    

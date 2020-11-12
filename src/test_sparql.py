@@ -4,12 +4,15 @@ import json
 KBPATH = "assets/wikidata-20200203-truthy-uri-tridentdb"
 
 # Retrieve first 10 entities of type (P31) city (Q515)
-query = (
-    "PREFIX wde: <http://www.wikidata.org/entity/> "
-    "PREFIX wdp: <http://www.wikidata.org/prop/direct/> "
-    "PREFIX wdpn: <http://www.wikidata.org/prop/direct-normalized/> "
-    "select ?s where { ?s wdp:P31 wde:Q515 . } LIMIT 10"
-)
+query = """
+    PREFIX wde: <http://www.wikidata.org/entity/>
+    PREFIX wdp: <http://www.wikidata.org/prop/direct/>
+    PREFIX wdpn: <http://www.wikidata.org/prop/direct-normalized/>
+    select ?s where { 
+        ?s wdp:P31 wde:Q515 .
+        ?s wde:Q658349 "France" .
+    } LIMIT 10
+    """
 
 # Load the KB
 db = trident.Db(KBPATH)

@@ -22,8 +22,8 @@ import en_core_web_md
 #             result.append((label, entity))
 #     return result
 
-class InformationExtractor():
 
+class InformationExtractor:
     def __init__(self):
         self.nlp = en_core_web_md.load()
 
@@ -31,4 +31,9 @@ class InformationExtractor():
         with self.nlp.disable_pipes("tagger", "parser"):
             doc = self.nlp(text)
             result = [(X.label_, X.text) for X in doc.ents]
+            result = self._apply_filters(result)
             return result
+
+    def _apply_filters(self, result):
+        result = [r for r in result if r[0] != "CARDINAL" and r[0] != "TIME"]
+        return result
