@@ -12,7 +12,7 @@ import entity_linking as el
 from elasticsearch import Elasticsearch
 
 KEYNAME = "WARC-TREC-ID"
-KBPATH='assets/wikidata-20200203-truthy-uri-tridentdb'
+KBPATH='/app/assignment/assets/wikidata-20200203-truthy-uri-tridentdb'
 
 class Executor:
     def __init__(self):
@@ -21,6 +21,7 @@ class Executor:
 
     # The goal of this function is to process the webpage and to return a list of labels -> entity ID
     def _find_labels(self, payload):
+        print("step1, preprocessing")
         if payload == "":
             return
         # The variable payload contains the source code of a webpage and some additional meta-data.
@@ -40,15 +41,18 @@ class Executor:
 
         # Problem 2: Let's assume that we found a way to retrieve the text from a webpage. How can we recognize the
         # entities in the text?
-
+        
+        print("step2, information extraction")
         entities = self.information_extractor.get_spacy_entities(text)
 
         # Problem 3: We now have to disambiguate the entities in the text. For instance, let's assugme that we identified
         # the entity "Michael Jordan". Which entity in Wikidata is the one that is referred to in the text?
-
+        print("step3, processing entities amount of : " + str(len(entities)))
         entity_wikidata = self.entity_linking.entityLinking(entities)
+        print("finished")
         for entity in entity_wikidata:
             yield key, entity[0], entity[1]
+            
         # To tackle this problem, you have access to two tools that can be useful. The first is a SPARQL engine (Trident)
         # with a local copy of Wikidata. The file "test_sparql.py" shows how you can execute SPARQL queries to retrieve
         # valuable knowledge. Please be aware that a SPARQL engine is not the best tool in case you want to lookup for

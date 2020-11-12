@@ -29,6 +29,7 @@ class Entity_Linking:
     def entityLinking(self, entitytype_entities):
         entity_wikidata = [] #(entity, wikidata)
         for entitytype_entity in entitytype_entities:
+            print("searching elastic for entity: " + entitytype_entity[1])
             entity_popularity = [] #(entity, popularity)
             #1look in elasticsearch for wikidate references per entity
             for wikidata_url, label in self.searchElastic(entitytype_entity[1]).items():
@@ -40,6 +41,11 @@ class Entity_Linking:
                 entity_popularity.append((wikidata_url, popularity)) #e.g. [('<http://www.wikidata.org/entity/Q271982>', 11)]
                 #TODO: better would be to use context dependent 
             #3 identify the best possible match
+            if not entity_popularity:
+                print("list is empty")
+                continue
+            print("elastic returned amount of results: " + str(len(entity_popularity)))
             entity_popularity.sort(key=lambda x: x[1], reverse=True)
             entity_wikidata.append((entitytype_entity[1],entity_popularity[0][0]))
+            print("best match was: " + entity_popularity[0][0])
         return entity_wikidata
