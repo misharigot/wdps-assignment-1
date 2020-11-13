@@ -33,7 +33,7 @@ class InformationExtractor:
             doc = self.nlp(text)
             result = [(X.label_, X.text) for X in doc.ents]
             result = self._apply_filters(result)
-            return list(set([x[1] for x in result]))
+            return [x[1] for x in result]
 
     def _apply_filters(self, result):
         result = [

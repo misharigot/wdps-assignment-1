@@ -46,22 +46,24 @@ def test_get_spacy_entities(information_extractor):
         "Neuro",
         "California",
     ]
-    assert set(actual) == set(expected)
+    assert sorted(actual) == sorted(expected)
 
 
-def test_get_spacy_entities_without_duplicates(information_extractor):
+def test_get_spacy_entities_withduplicates(information_extractor):
     actual = information_extractor.get_spacy_entities(input_with_duplicate_entities)
     expected = [
         "Richard Bandler",
+        "Richard Bandler",
         "California",
     ]
-    assert set(actual) == set(expected)
+    assert sorted(actual) == sorted(expected)
 
 
 def test_get_spacy_entities_without_unwanted_entities(information_extractor):
     actual = information_extractor.get_spacy_entities(input_with_unwanted_entities)
     expected = [
         "Richard Bandler",
+        "Richard Bandler",
         "California",
     ]
-    assert set(actual) == set(expected)
+    assert sorted(actual) == sorted(expected)
