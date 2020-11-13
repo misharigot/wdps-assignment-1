@@ -12,7 +12,8 @@ import entity_linking as el
 from elasticsearch import Elasticsearch
 
 KEYNAME = "WARC-TREC-ID"
-KBPATH='/app/assignment/assets/wikidata-20200203-truthy-uri-tridentdb'
+KBPATH = "/app/assignment/assets/wikidata-20200203-truthy-uri-tridentdb"
+
 
 class Executor:
     def __init__(self):
@@ -21,7 +22,7 @@ class Executor:
 
     # The goal of this function is to process the webpage and to return a list of labels -> entity ID
     def _find_labels(self, payload):
-        print("step1, preprocessing")
+        # print("step1, preprocessing")
         if payload == "":
             return
         # The variable payload contains the source code of a webpage and some additional meta-data.
@@ -41,18 +42,18 @@ class Executor:
 
         # Problem 2: Let's assume that we found a way to retrieve the text from a webpage. How can we recognize the
         # entities in the text?
-        
-        print("step2, information extraction")
+
+        # print("step2, information extraction")
         entities = self.information_extractor.get_spacy_entities(text)
 
         # Problem 3: We now have to disambiguate the entities in the text. For instance, let's assugme that we identified
         # the entity "Michael Jordan". Which entity in Wikidata is the one that is referred to in the text?
-        print("step3, processing entities amount of : " + str(len(entities)))
+        # print("step3, processing entities amount of : " + str(len(entities)))
         entity_wikidata = self.entity_linking.entityLinking(entities)
-        print("finished")
+        # print("finished")
         for entity in entity_wikidata:
             yield key, entity[0], entity[1]
-            
+
         # To tackle this problem, you have access to two tools that can be useful. The first is a SPARQL engine (Trident)
         # with a local copy of Wikidata. The file "test_sparql.py" shows how you can execute SPARQL queries to retrieve
         # valuable knowledge. Please be aware that a SPARQL engine is not the best tool in case you want to lookup for
@@ -80,7 +81,6 @@ class Executor:
         #     if key and (label in payload):
         #         yield key, label, wikidata_id
 
-
     @staticmethod
     def split_records(stream):
         payload = ""
@@ -92,20 +92,24 @@ class Executor:
                 payload += line
         yield payload
 
-
-    def execute(self, warc_path: str = "/app/assignment/data/sample.warc.gz", max_iterations=None):
-        data = pd.DataFrame(columns=["key", "type", "label"])
+    def execute(
+        self,
+        warc_path: str = "/app/assignment/data/sample.warc.gz",
+        max_iterations=None,
+    ):
+        # data = pd.DataFrame(columns=["key", "type", "label"])
 
         with gzip.open(warc_path, "rt", errors="ignore") as fo:
             counter = 0
             for record in tqdm(self.split_records(fo)):
-                for key, _type, label in self._find_labels(record):
-                    row = {"key": key, "type": _type, "label": label}
-                    data = data.append(row, ignore_index=True)
+                for key, label, wikidata_id in self._find_labels(record):
+                    # row = {"key": key, "type": _type, "label": label}
+                    # data = data.append(row, ignore_index=True)
+                    print(key + "\t" + label + "\t" + wikidata_id)
                 counter += 1
                 if max_iterations and counter == max_iterations:
                     break
-        data.to_csv("result.csv")
+        # data.to_csv("result.csv")
 
 
 if __name__ == "__main__":
@@ -120,8 +124,7 @@ if __name__ == "__main__":
     executor.execute(INPUT)
 
     # The following allows you to get performance stats on running execute()
- 
+
     # cProfile.run('executor.execute()', 'restats')
     # p = pstats.Stats('restats')
     # p.sort_stats('cumulative').print_stats(30)
-    
