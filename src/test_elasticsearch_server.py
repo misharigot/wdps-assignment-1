@@ -5,7 +5,8 @@ from elasticsearch import Elasticsearch
 
 def search(query):
     e = Elasticsearch([{'host': 'localhost', 'port': 9200}])
-    p = {"query": {"query_string": {"query": query}}}
+    p = {"query": {"query_string": {"query": query, "default_operator": "AND", "type":"phrase"}}}
+
     response = e.search(index="wikidata_en", body=json.dumps(p))
     id_labels = {}
     if response:
@@ -30,3 +31,4 @@ if __name__ == "__main__":
 
     for entity, labels in search(QUERY).items():
         print(entity, labels)
+
