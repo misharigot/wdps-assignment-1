@@ -19,11 +19,12 @@ class Entity_Linking:
                     "query": query,
                     "default_operator": "AND",
                     "type": "phrase",
+                    "default_field": "schema_name"
                 }
             }
         }
 
-        response = self.e.search(index="wikidata_en", body=json.dumps(p), size=50)
+        response = self.e.search(index="wikidata_en", body=json.dumps(p), size=100)
         # idea maybe query name and a.k.a. instead of name and description (possibly faster more accurate since we often have the abbreviation)
         id_labels = {}
         if response:
@@ -37,6 +38,9 @@ class Entity_Linking:
                 # could also retrieve the ES score here
                 id_labels.setdefault(id, set()).add(label)
         return id_labels
+
+    def _push_to_cache(self, entity, wikidata_url):
+        self.cache[entity] = wikidata_url
 
     #!!a bit confusing but i use _ to anotate tuples, where the left side of _ means the first item in the tuple!!
     def entityLinking(self, entities: List[str]):
@@ -52,7 +56,7 @@ class Entity_Linking:
                 if most_popular_entity is None:
                     continue
                 wikidata_url = most_popular_entity[1]
-                self.cache[entity] = wikidata_url
+                self._push_to_cache(entity, wikidata_url)
                 linked_entities.append(most_popular_entity)
         return linked_entities
 
