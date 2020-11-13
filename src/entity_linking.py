@@ -4,6 +4,9 @@ from typing import List, Dict
 import requests
 import trident
 from elasticsearch import Elasticsearch
+import asyncio
+from elasticsearch import AsyncElasticsearch
+from elasticsearch.helpers import async_streaming_bulk
 
 
 class Entity_Linking:
@@ -11,9 +14,33 @@ class Entity_Linking:
     MIN_POPULARITY = 5
 
     def __init__(self, KBPATH):
-        self.e = Elasticsearch([{"host": "localhost", "port": 9200}], timeout=5)
+        # self.e = Elasticsearch([{"host": "localhost", "port": 9200}], timeout=5)
+        self.es = AsyncElasticsearch([{"host": "localhost", "port": 9200}], timeout=5)
         self.db = trident.Db(KBPATH)
         self.cache: Dict[str, str] = {}
+
+
+    async def asyncSearch(self, entity):
+        resp = await self.es.search(
+            index="wikidata_en",
+            body={"query": {
+                    "query_string": {
+                        "query": entity,
+                        "default_operator": "AND",
+                        "type": "phrase",
+                        "default_field": "schema_name"
+                    }
+                }},
+            size=200
+        )
+        print("result")
+
+    async def asyncBulkSearch(self, entities):
+        for entity in entities:
+            await asyncio.create_task(self.asyncSearch(entity))
+        await self.es.close() 
+        # async for result in asyncSearch()
+
 
     def searchElastic(self, query):
         p = {
@@ -81,3 +108,10 @@ class Entity_Linking:
             return None
 
         return (entity, most_popular_wikidata_url)
+
+if __name__ == "__main__":
+    KBPATH = "/app/assignment/assets/wikidata-20200203-truthy-uri-tridentdb"
+    EL = Entity_Linking(KBPATH)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(EL.asyncBulkSearch(["Google", "google", "sdfgsdgdf", "fdgdgdfs", "fgdsgdsf", "United States"]))
+    EL.es.close() 
