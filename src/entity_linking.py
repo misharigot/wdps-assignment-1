@@ -7,6 +7,9 @@ from elasticsearch import Elasticsearch
 
 
 class Entity_Linking:
+    # The minimum popularity for an entity to be linked
+    MIN_POPULARITY = 5
+
     def __init__(self, KBPATH):
         self.e = Elasticsearch([{"host": "localhost", "port": 9200}], timeout=30)
         self.db = trident.Db(KBPATH)
@@ -76,6 +79,12 @@ class Entity_Linking:
             return None
 
         entities_with_popularity.sort(key=lambda x: x[1], reverse=True)
+        
+        _popularity = entities_with_popularity[0][1]
+        if _popularity < self.MIN_POPULARITY:
+            return None
+        
         _wikidata_url = entities_with_popularity[0][0]
         most_popular_entity = (entity, _wikidata_url)
+
         return most_popular_entity
