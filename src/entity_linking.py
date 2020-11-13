@@ -11,7 +11,7 @@ class Entity_Linking:
     MIN_POPULARITY = 5
 
     def __init__(self, KBPATH):
-        self.e = Elasticsearch([{"host": "localhost", "port": 9200}], timeout=30)
+        self.e = Elasticsearch([{"host": "localhost", "port": 9200}], timeout=5)
         self.db = trident.Db(KBPATH)
         self.cache: Dict[str, str] = {}
 
@@ -27,7 +27,7 @@ class Entity_Linking:
             }
         }
 
-        response = self.e.search(index="wikidata_en", body=json.dumps(p), size=100)
+        response = self.e.search(index="wikidata_en", body=json.dumps(p), size=200)
         # idea maybe query name and a.k.a. instead of name and description (possibly faster more accurate since we often have the abbreviation)
         id_labels = {}
         if response:
@@ -64,27 +64,20 @@ class Entity_Linking:
         return linked_entities
 
     def _get_most_popular_entity(self, entity):
-        entities_with_popularity = []  # (entity, popularity)
-        # Look in elasticsearch for wikidate references per entity
+        highest_popularity = self.MIN_POPULARITY
+        most_popular_wikidata_url = None
         try:
             for wikidata_url, label in self.searchElastic(entity).items():
                 wikidata_ref = self.db.lookup_id(wikidata_url)
                 popularity = self.db.count_o(wikidata_ref)
-                entities_with_popularity.append((wikidata_url, popularity))
+                if popularity > highest_popularity:
+                    most_popular_wikidata_url = wikidata_url
+                    highest_popularity = popularity
         except Exception as e:  # If a timeout occurs, skip the entity
             # print(f"Cannot processes {entity[1]}", e)
             return None
 
-        if not entities_with_popularity:
+        if most_popular_wikidata_url is None:
             return None
 
-        entities_with_popularity.sort(key=lambda x: x[1], reverse=True)
-        
-        _popularity = entities_with_popularity[0][1]
-        if _popularity < self.MIN_POPULARITY:
-            return None
-        
-        _wikidata_url = entities_with_popularity[0][0]
-        most_popular_entity = (entity, _wikidata_url)
-
-        return most_popular_entity
+        return (entity, most_popular_wikidata_url)
