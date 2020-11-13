@@ -23,13 +23,17 @@ from spacy import displacy
 #             result.append((label, entity))
 #     return result
 
-
-class InformationExtractor:
+class InformationExtractor():
     def __init__(self):
         self.nlp = en_core_web_md.load()
 
     def get_spacy_entities(self, text):
         with self.nlp.disable_pipes("tagger", "parser"):
             doc = self.nlp(text)
-            result = [X.text for X in doc.ents]
-            return list(set(result))
+            result = [(X.label_, X.text) for X in doc.ents]
+            result = self._apply_filters(result)
+            return list(set([x[1] for x in result]))
+
+    def _apply_filters(self, result):
+        result = [r for r in result if r[0] != "CARDINAL" and r[0] != "TIME"]
+        return result
