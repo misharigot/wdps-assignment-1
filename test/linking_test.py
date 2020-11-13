@@ -32,3 +32,38 @@ def test_entityLinking():
     entity_wikidata = entity_linking.entityLinking(entities)
     expected= [('Google', '<http://www.wikidata.org/entity/Q95>')]
     assert expected == entity_wikidata
+
+def test_entityLinkingBatch():
+    entities = [
+        ("ORG", "Neuro"),
+        ("ORG", "NLP"),
+        ("PERSON", "Richard Bandler"),
+        ("PERSON", "John Grinder"),
+        ("GPE", "California"),
+        ("GPE", "United States"),
+        ("DATE", "the 1970s"),
+        ("ORG", "Neuro"),
+        ("ORG", "NLP"),
+        ("PERSON", "Richard Bandler"),
+        ("PERSON", "John Grinder"),
+        ("GPE", "California"),
+        ("GPE", "United States"),
+        ("DATE", "the 1970s"),
+        ("ORG", "Neuro"),
+        ("ORG", "NLP"),
+        ("PERSON", "Richard Bandler"),
+        ("PERSON", "John Grinder"),
+        ("GPE", "California"),
+        ("GPE", "United States"),
+        ("DATE", "the 1970s"),
+        ("ORG", "Neuro"),
+        ("ORG", "NLP"),
+        ("PERSON", "Richard Bandler"),
+        ("PERSON", "John Grinder"),
+        ("GPE", "California"),
+        ("GPE", "United States"),
+        ("DATE", "the 1970s")
+    ]
+    entity_wikidata = entity_linking.entityLinking(entities)
+    expected= 28
+    assert expected == len(entity_wikidata)
