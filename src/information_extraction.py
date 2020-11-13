@@ -6,11 +6,12 @@ Output = textual entities & relations.
 # from nltk.tag import pos_tag
 # from nltk.chunk import ne_chunk
 
+from collections import Counter
+from typing import Tuple
+
+import en_core_web_md
 import spacy
 from spacy import displacy
-from collections import Counter
-import en_core_web_md
-
 
 # def get_nltk_entities(text):
 #     ne_tree = ne_chunk(pos_tag(word_tokenize(text)))
@@ -22,13 +23,13 @@ import en_core_web_md
 #             result.append((label, entity))
 #     return result
 
-class InformationExtractor():
 
+class InformationExtractor:
     def __init__(self):
         self.nlp = en_core_web_md.load()
 
     def get_spacy_entities(self, text):
         with self.nlp.disable_pipes("tagger", "parser"):
             doc = self.nlp(text)
-            result = [(X.label_, X.text) for X in doc.ents]
-            return result
+            result = [X.text for X in doc.ents]
+            return list(set(result))

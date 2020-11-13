@@ -1,7 +1,9 @@
-import requests
 import json
-from elasticsearch import Elasticsearch
+from typing import List
+
+import requests
 import trident
+from elasticsearch import Elasticsearch
 
 
 class Entity_Linking:
@@ -27,34 +29,33 @@ class Entity_Linking:
         return id_labels
 
     #!!a bit confusing but i use _ to anotate tuples, where the left side of _ means the first item in the tuple!!
-    def entityLinking(self, entitytype_entities):
+    def entityLinking(self, entities: List[str]):
         entity_wikidata = []  # (entity, wikidata)
-        for entitytype_entity in entitytype_entities:
-            # print("searching elastic for entity: " + entitytype_entity[1])
+        for entity in entities:
+            # print("searching elastic for entity: " + entity[1])
             entity_popularity = []  # (entity, popularity)
-            # 1look in elasticsearch for wikidate references per entity
+            # Look in elasticsearch for wikidate references per entity
             try:
-                for wikidata_url, label in self.searchElastic(
-                    entitytype_entity[1]
-                ).items():
-                    # for exampe now query trident and retreive the most popular (most references) wikipedia article for the entity
+                for wikidata_url, label in self.searchElastic(entity).items():
+                    # for example now query trident and retreive the most popular (most references) wikipedia article for the entity
                     # MVP: use score and popularity
                     # 2 retrieve info from trident
                     wikidata_ref = self.db.lookup_id(wikidata_url)
                     popularity = self.db.count_o(wikidata_ref)
-                    entity_popularity.append(
-                        (wikidata_url, popularity)
-                    )  # e.g. [('<http://www.wikidata.org/entity/Q271982>', 11)]
-                    # TODO: better would be to use context dependent
-            except Exception as e:
-                # print(f"Cannot processes {entitytype_entity[1]}", e)
+
+                    # e.g. [('<http://www.wikidata.org/entity/Q271982>', 11)]
+                    entity_popularity.append((wikidata_url, popularity))
+
+            except Exception as e: # If a timeout occurs, skip the entity
+                # print(f"Cannot processes {entity[1]}", e)
                 continue
-            # 3 identify the best possible match
+
             if not entity_popularity:
                 # print("list is empty")
                 continue
+
             # print("elastic returned amount of results: " + str(len(entity_popularity)))
             entity_popularity.sort(key=lambda x: x[1], reverse=True)
-            entity_wikidata.append((entitytype_entity[1], entity_popularity[0][0]))
+            entity_wikidata.append((entity, entity_popularity[0][0]))
             # print("best match was: " + entity_popularity[0][0])
         return entity_wikidata
