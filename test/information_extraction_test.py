@@ -13,8 +13,8 @@ input_with_duplicate_entities = """
     """
 
 
-input_with_numbers_and_time = """
-    This guy at 10:30 I know called 34 Richard Bandler and some other text Richard Bandler in California 1!
+input_with_unwanted_entities = """
+    This Fourth guy at 10:30 I know ten million called 34 Richard Bandler and $10.20 some fifth other 5.30 text Richard Bandler in California 1!
     """
 
 
@@ -28,6 +28,7 @@ input_with_numbers_and_time = """
 #         ("GPE", "United States"),
 #     ]
 #     assert actual == expected
+
 
 @pytest.fixture
 def information_extractor(monkeypatch):
@@ -57,8 +58,8 @@ def test_get_spacy_entities_without_duplicates(information_extractor):
     assert set(actual) == set(expected)
 
 
-def test_get_spacy_entities_without_mumbers(information_extractor):
-    actual = information_extractor.get_spacy_entities(input_with_numbers_and_time)
+def test_get_spacy_entities_without_unwanted_entities(information_extractor):
+    actual = information_extractor.get_spacy_entities(input_with_unwanted_entities)
     expected = [
         "Richard Bandler",
         "California",

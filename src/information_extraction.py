@@ -23,7 +23,8 @@ from spacy import displacy
 #             result.append((label, entity))
 #     return result
 
-class InformationExtractor():
+
+class InformationExtractor:
     def __init__(self):
         self.nlp = en_core_web_md.load()
 
@@ -35,5 +36,12 @@ class InformationExtractor():
             return list(set([x[1] for x in result]))
 
     def _apply_filters(self, result):
-        result = [r for r in result if r[0] != "CARDINAL" and r[0] != "TIME"]
+        result = [
+            r
+            for r in result
+            if r[0] != "CARDINAL"
+            and r[0] != "TIME"
+            and r[0] != "MONEY"
+            and r[0] != "ORDINAL"
+        ]
         return result
