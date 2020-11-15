@@ -1,11 +1,13 @@
+"""Link a list of entities to their Wikidata URL using Elasticsearch and Trident.
+"""
+
+import asyncio
 import json
-from typing import List, Dict, Tuple
+from typing import Dict, List, Tuple, Optional
 
 import requests
 import trident
-from elasticsearch import Elasticsearch
-import asyncio
-from elasticsearch import AsyncElasticsearch
+from elasticsearch import AsyncElasticsearch, Elasticsearch
 from elasticsearch.helpers import async_streaming_bulk
 
 
@@ -13,14 +15,13 @@ class Entity_Linking:
     # The minimum popularity for an entity to be linked
     MIN_POPULARITY = 5
 
-    def __init__(self, KBPATH):
-        # self.e = Elasticsearch([{"host": "localhost", "port": 9200}], timeout=5)
+    def __init__(self, KBPATH: str):
         self.es = AsyncElasticsearch([{"host": "localhost", "port": 9200}], timeout=30)
         self.db = trident.Db(KBPATH)
         self.loop = asyncio.get_event_loop()
         self.cache: Dict[str, str] = {}
 
-    async def asyncSearch(self, entity):
+    async def _async_search(self, entity: str) -> Dict[str, str]:
         response = await self.es.search(
             index="wikidata_en",
             body={
@@ -48,55 +49,17 @@ class Entity_Linking:
                 id_labels.setdefault(id, set()).add(label)
         return id_labels
 
-    async def asyncBulkSearch(self, entities):
-        for i in range(0, len(entities)):
-            for x in range(0, 20):
-                await asyncio.create_task(self.asyncSearch(entities[i] + str(x)))
-            print("result" + str(i))
-
-    async def close(self):
+    async def close_es(self):
         await self.es.close()
 
-    # def searchElastic(self, query):
-    #     p = {
-    #         "query": {
-    #             "query_string": {
-    #                 "query": query,
-    #                 "default_operator": "AND",
-    #                 "type": "phrase",
-    #                 "default_field": "schema_name"
-    #             }
-    #         }
-    #     }
-
-    #     response = self.e.search(index="wikidata_en", body=json.dumps(p), size=200)
-    #     # idea maybe query name and a.k.a. instead of name and description (possibly faster more accurate since we often have the abbreviation)
-    #     id_labels = {}
-    #     if response:
-    #         for hit in response["hits"]["hits"]:
-    #             try:
-    #                 # same entity have schema name missing
-    #                 label = hit["_source"]["schema_name"]
-    #             except Exception as e:
-    #                 continue
-    #             id = hit["_id"]
-    #             # could also retrieve the ES score here
-    #             id_labels.setdefault(id, set()).add(label)
-    #     return id_labels
-
-    def _push_to_cache(self, entity, wikidata_url):
+    def _push_to_cache(self, entity: str, wikidata_url: str):
         self.cache[entity] = wikidata_url
 
     def entity_linking(self, entities: List[str]) -> List[Tuple[str, str]]:
-        result = self.loop.run_until_complete(self.entityLinking(entities))
-
-        # loop.run_until_complete(self.close())
-        # loop.close()
-        # asyncio.run(self.close())
+        result = self.loop.run_until_complete(self._link_entities_async(entities))
         return result
 
-    #!!a bit confusing but i use _ to anotate tuples, where the left side of _ means the first item in the tuple!!
-    async def entityLinking(self, entities: List[str]):
+    async def _link_entities_async(self, entities: List[str]) -> List[Tuple[str, str]]:
         linked_entities = []  # (entity, wikidata)
         for entity in entities:
             # Check cache
@@ -113,19 +76,18 @@ class Entity_Linking:
                 linked_entities.append(most_popular_entity)
         return linked_entities
 
-    async def _get_most_popular_entity(self, entity):
+    async def _get_most_popular_entity(self, entity: str) -> Optional[Tuple[str, str]]:
         highest_popularity = self.MIN_POPULARITY
         most_popular_wikidata_url = None
         try:
-            id_labels = await asyncio.create_task(self.asyncSearch(entity))
+            id_labels = await asyncio.create_task(self._async_search(entity))
             for wikidata_url, label in id_labels.items():
                 wikidata_ref = self.db.lookup_id(wikidata_url)
                 popularity = self.db.count_o(wikidata_ref)
                 if popularity > highest_popularity:
                     most_popular_wikidata_url = wikidata_url
                     highest_popularity = popularity
-        except Exception as e:  # If a timeout occurs, skip the entity
-            # print(f"Cannot processes {entity[1]}", e)
+        except Exception as e:  # If an exception occurs, skip entity.
             return None
 
         if most_popular_wikidata_url is None:
@@ -134,5 +96,5 @@ class Entity_Linking:
         return (entity, most_popular_wikidata_url)
 
     def __del__(self):
-        self.loop.run_until_complete(self.close())
+        self.loop.run_until_complete(self.close_es())
         self.loop.close()

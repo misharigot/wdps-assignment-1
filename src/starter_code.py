@@ -23,9 +23,9 @@ class Executor:
 
     # The goal of this function is to process the webpage and to return a list of labels -> entity ID
     def _find_labels(self, payload):
-        # print("step1, preprocessing")
         if payload == "":
             return
+
         # The variable payload contains the source code of a webpage and some additional meta-data.
         # We first retrieve the ID of the webpage, which is indicated in a line that starts with KEYNAME.
         # The ID is contained in the variable 'key'
@@ -43,31 +43,13 @@ class Executor:
 
         # Problem 2: Let's assume that we found a way to retrieve the text from a webpage. How can we recognize the
         # entities in the text?
-
-        # print("step2, information extraction")
         entities: List[str] = self.information_extractor.get_spacy_entities(text)
 
         # Problem 3: We now have to disambiguate the entities in the text. For instance, let's assugme that we identified
         # the entity "Michael Jordan". Which entity in Wikidata is the one that is referred to in the text?
-        # print("step3, processing entities amount of : " + str(len(entities)))
-
         entity_wikidata = self.entity_linking.entity_linking(entities)
         for entity in entity_wikidata:
             yield key, entity[0], entity[1]
-
-        # To tackle this problem, you have access to two tools that can be useful. The first is a SPARQL engine (Trident)
-        # with a local copy of Wikidata. The file "test_sparql.py" shows how you can execute SPARQL queries to retrieve
-        # valuable knowledge. Please be aware that a SPARQL engine is not the best tool in case you want to lookup for
-        # some strings. For this task, you can use elasticsearch, which is also installed in the docker image.
-        # The file start_elasticsearch_server.sh will start the elasticsearch server while the file
-        # test_elasticsearch_server.py shows how you can query the engine.
-
-        # A simple implementation would be to first query elasticsearch to retrieve all the entities with a label
-        # that is similar to the text found in the web page. Then, you can access the SPARQL engine to retrieve valuable
-        # knowledge that can help you to disambiguate the entity. For instance, if you know that the webpage refers to persons
-        # then you can query the knowledge base to filter out all the entities that are not persons...
-
-        # Obviously, more sophisticated implementations that the one suggested above are more than welcome :-)
 
     @staticmethod
     def split_records(stream):
@@ -85,23 +67,16 @@ class Executor:
         warc_path: str = "/app/assignment/data/sample.warc.gz",
         max_iterations=None,
     ):
-        # data = pd.DataFrame(columns=["key", "type", "label"])
-
         with gzip.open(warc_path, "rt", errors="ignore") as fo:
             counter = 0
             for record in tqdm(self.split_records(fo)):
                 for key, label, wikidata_id in self._find_labels(record):
-                    # row = {"key": key, "type": _type, "label": label}
-                    # data = data.append(row, ignore_index=True)
                     print(key + "\t" + label + "\t" + wikidata_id)
                 counter += 1
                 if max_iterations and counter == max_iterations:
                     break
-        # data.to_csv("result.csv")
-
 
 if __name__ == "__main__":
-
     try:
         _, INPUT = sys.argv
     except Exception as e:
@@ -110,9 +85,3 @@ if __name__ == "__main__":
 
     executor = Executor()
     executor.execute(INPUT)
-
-    # The following allows you to get performance stats on running execute()
-
-    # cProfile.run('executor.execute()', 'restats')
-    # p = pstats.Stats('restats')
-    # p.sort_stats('cumulative').print_stats(30)

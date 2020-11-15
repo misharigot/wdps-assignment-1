@@ -1,3 +1,6 @@
+"""Utility function to obtain the popularity for an entity.
+"""
+
 import sys
 import trident
 
