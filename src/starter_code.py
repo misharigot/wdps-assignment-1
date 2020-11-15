@@ -51,7 +51,7 @@ class Executor:
         # the entity "Michael Jordan". Which entity in Wikidata is the one that is referred to in the text?
         # print("step3, processing entities amount of : " + str(len(entities)))
 
-        entity_wikidata = self.entity_linking.entityLinking(entities)
+        entity_wikidata = self.entity_linking.entity_linking(entities)
         for entity in entity_wikidata:
             yield key, entity[0], entity[1]
 
