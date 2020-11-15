@@ -4,23 +4,23 @@
 
 - The assets and data directories from the large zip archives from the course.
 
-## Downloading the image
-
-The image can be downloaded from Docker Hub.
-
 ## Building the docker image
 
-Optionally, you can build the image yourself from the Dockerfile.
+You can build the image from the Dockerfile.
 
 1. Clone repo and `cd` into it.
+   ```sh
+   git clone https://github.com/misharigot/wdps-assignment-1.git
+   cd wdps-assignment-1
+   ```
 
-1. Build the image from the Dockerfile.
+2. Build the image from the Dockerfile.
 
     ```sh
     docker build -t wdps_assignment:0.1.0 .
     ```
 
-1. Add the assets and data directories from the large zip archives to the cloned repository. Making the following dir structure:
+3. Add the assets and data directories from the large zip archives to the cloned repository. Making the following dir structure:
 
     ```
     .
@@ -39,7 +39,7 @@ Optionally, you can build the image yourself from the Dockerfile.
         └── ...
     ```
 
-1. Run the container and mount your data folder.
+4. Run the container and mount your data folder.
 
     ```sh
     docker run -ti -v /path/to/this/repo:/app/assignment -p 9200:9200 wdps_assignment:0.1.0

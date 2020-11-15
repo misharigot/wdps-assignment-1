@@ -12,7 +12,7 @@ import entity_linking as el
 import information_extraction as ie
 from nlp_preprocessing import preprocess_text
 
-KEYNAME = "WARC-TREC-ID"
+KEYNAME = "WARC-Record-ID"
 KBPATH = "/app/assignment/assets/wikidata-20200203-truthy-uri-tridentdb"
 
 
