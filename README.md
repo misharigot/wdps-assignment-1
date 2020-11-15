@@ -4,7 +4,13 @@
 
 - The assets and data directories from the large zip archives from the course.
 
-## Setting up the Docker environment
+## Downloading the image
+
+The image can be downloaded from Docker Hub.
+
+## Building the docker image
+
+Optionally, you can build the image yourself from the Dockerfile.
 
 1. Clone repo and `cd` into it.
 
@@ -33,25 +39,27 @@
         └── ...
     ```
 
-2. Run the container and mount your data folder.
+1. Run the container and mount your data folder.
 
     ```sh
     docker run -ti -v /path/to/this/repo:/app/assignment -p 9200:9200 wdps_assignment:0.1.0
     ```
 
-3. Start elastic search server.
+## Running the program
+
+1. Start elastic search server.
 
     ```sh
     sh /app/assignment/src/start_elasticsearch_server.sh
     ```
 
-4. Run the example
+1. Run the example
 
     ```sh
     sh /app/assignment/src/run_example.sh
     ```
 
-5. Run pytest
+1. Run pytest
 
     ```sh
     cd /app/assignment
