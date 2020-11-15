@@ -19,7 +19,6 @@ class Entity_Linking:
         self.db = trident.Db(KBPATH)
         self.cache: Dict[str, str] = {}
 
-
     async def asyncSearch(self, entity):
         resp = await self.es.search(
             index="wikidata_en",
@@ -31,43 +30,48 @@ class Entity_Linking:
                         "default_field": "schema_name"
                     }
                 }},
-            size=200
+            size=10
         )
-        print("result")
+        #run trident qeuries async
+        # await trident_query
+        print(resp)
 
     async def asyncBulkSearch(self, entities):
-        for entity in entities:
-            await asyncio.create_task(self.asyncSearch(entity))
-        await self.es.close() 
-        # async for result in asyncSearch()
+        for i in range(0,len(entities)):
+            for x in range(0, 20):
+                await asyncio.create_task(self.asyncSearch(entities[i]+str(x)))
+            print("result" + str(i))         
+        
 
+    async def close(self):
+        await self.es.close()
 
-    def searchElastic(self, query):
-        p = {
-            "query": {
-                "query_string": {
-                    "query": query,
-                    "default_operator": "AND",
-                    "type": "phrase",
-                    "default_field": "schema_name"
-                }
-            }
-        }
+    # def searchElastic(self, query):
+    #     p = {
+    #         "query": {
+    #             "query_string": {
+    #                 "query": query,
+    #                 "default_operator": "AND",
+    #                 "type": "phrase",
+    #                 "default_field": "schema_name"
+    #             }
+    #         }
+    #     }
 
-        response = self.e.search(index="wikidata_en", body=json.dumps(p), size=200)
-        # idea maybe query name and a.k.a. instead of name and description (possibly faster more accurate since we often have the abbreviation)
-        id_labels = {}
-        if response:
-            for hit in response["hits"]["hits"]:
-                try:
-                    # same entity have schema name missing
-                    label = hit["_source"]["schema_name"]
-                except Exception as e:
-                    continue
-                id = hit["_id"]
-                # could also retrieve the ES score here
-                id_labels.setdefault(id, set()).add(label)
-        return id_labels
+    #     response = self.e.search(index="wikidata_en", body=json.dumps(p), size=200)
+    #     # idea maybe query name and a.k.a. instead of name and description (possibly faster more accurate since we often have the abbreviation)
+    #     id_labels = {}
+    #     if response:
+    #         for hit in response["hits"]["hits"]:
+    #             try:
+    #                 # same entity have schema name missing
+    #                 label = hit["_source"]["schema_name"]
+    #             except Exception as e:
+    #                 continue
+    #             id = hit["_id"]
+    #             # could also retrieve the ES score here
+    #             id_labels.setdefault(id, set()).add(label)
+    #     return id_labels
 
     def _push_to_cache(self, entity, wikidata_url):
         self.cache[entity] = wikidata_url
@@ -113,5 +117,9 @@ if __name__ == "__main__":
     KBPATH = "/app/assignment/assets/wikidata-20200203-truthy-uri-tridentdb"
     EL = Entity_Linking(KBPATH)
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(EL.asyncBulkSearch(["Google", "google", "sdfgsdgdf", "fdgdgdfs", "fgdsgdsf", "United States"]))
-    EL.es.close() 
+    loop.run_until_complete(EL.asyncBulkSearch(["Google", "google", "sdfgsdgdf", "fdgdgdfs", "fgdsgdsf", "United States","United"]))
+
+    loop.run_until_complete(EL.close())
+    loop.close()
+    #close connection
+    # await EL.close()
