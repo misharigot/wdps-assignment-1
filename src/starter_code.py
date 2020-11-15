@@ -76,6 +76,7 @@ class Executor:
                 if max_iterations and counter == max_iterations:
                     break
 
+
 if __name__ == "__main__":
     try:
         _, INPUT = sys.argv
