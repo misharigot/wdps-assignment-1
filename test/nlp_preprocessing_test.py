@@ -17,16 +17,19 @@ html_no_text = """
 </html>
 """
 
+
 def test_preprocess_text():
     actual = preprocess_text(html)
     expected = "this is a paragraph."
 
     assert actual == expected
 
+
 def test_preprocess_text_dif_lang():
     actual = preprocess_text(html_spanish)
 
     assert actual == None
+
 
 def test_preprocess_no_text():
     actual = preprocess_text(html_no_text)
