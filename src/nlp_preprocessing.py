@@ -1,9 +1,16 @@
-from bs4 import BeautifulSoup
-import cld2
+"""
+Preprocessing: get readable text from html and check if the main language is english
+Output = Text of htmlpage or none if no text or no english text
+"""
+
 import re
 from typing import Optional
 
+import cld2
+from bs4 import BeautifulSoup
+
 WARCTYPE = "WARC-Type"
+CHARACTERS_TO_INCLUDE = "[^A-Za-z0-9.,!?'&:-]"
 
 
 def preprocess_text(payload: str) -> Optional[str]:
@@ -27,4 +34,4 @@ def preprocess_text(payload: str) -> Optional[str]:
     except ValueError:
         return None
 
-    return " ".join(re.sub("[^A-Za-z0-9.,!?/'\"&$:-]", " ", text).split())
+    return " ".join(re.sub(CHARACTERS_TO_INCLUDE, " ", text).split())
